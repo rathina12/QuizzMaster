@@ -66,24 +66,20 @@ exports.getQuizForAttempt = async (req, res) => {
     let questions = await Question.find({ quizId: quiz._id });
 
     if (quiz.randomizeQuestions) {
-      questions = questions.sort(() => Math.random() - 0.5);
+      for (let i = questions.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [questions[i], questions[j]] = [questions[j], questions[i]]; }
     }
 
     // Hide correct answers, randomize options if needed
     const sanitizedQuestions = questions.map(q => {
       let options = [...q.options];
-      let correctLabel = q.correctAnswer;
 
       if (quiz.randomizeOptions) {
-        const shuffled = [...options].sort(() => Math.random() - 0.5);
-        // Re-map labels
-        const remap = {};
-        ['A', 'B', 'C', 'D'].forEach((label, i) => {
-          const originalIndex = options.findIndex(o => o.label === shuffled[i].label);
-          remap[options[originalIndex].label] = label;
-        });
-        options = shuffled.map((o, i) => ({ ...o, label: ['A', 'B', 'C', 'D'][i] }));
-        correctLabel = remap[q.correctAnswer];
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+        // Keep original labels stable for server-side scoring.
+
       }
 
       return {
