@@ -8,10 +8,20 @@ exports.submitResult = async (req, res) => {
   try {
     const { quizId, answers, timeTaken } = req.body;
 
+    if (!Array.isArray(answers) || !Number.isFinite(timeTaken) || timeTaken < 0) {
+      return res.status(400).json({ success: false, message: 'Invalid answers or timeTaken' });
+    }
     const quiz = await Quiz.findById(quizId);
     if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
 
+    if (!quiz.isPublished) return res.status(404).json({ success: false, message: 'Quiz not found' });
     const questions = await Question.find({ quizId });
+    const questionIds = new Set(questions.map(q => q._id.toString()));
+    const receivedIds = answers.map(a => a?.questionId);
+    if (receivedIds.some(id => !questionIds.has(id)) || new Set(receivedIds).size !== receivedIds.length ||
+        answers.some(a => a?.selectedAnswer != null && !['A', 'B', 'C', 'D'].includes(a.selectedAnswer))) {
+      return res.status(400).json({ success: false, message: 'Invalid or duplicate question answers' });
+    }
 
     let score = 0;
     const processedAnswers = questions.map(q => {
