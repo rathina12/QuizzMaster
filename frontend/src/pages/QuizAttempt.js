@@ -122,7 +122,7 @@ export default function QuizAttempt() {
             <p className="question-text">{question.question}</p>
 
             <div className="options-list">
-              {question.options.map(option => {
+              {question.options.map((option, optionIndex) => {
                 const selected = answers[question._id] === option.label;
                 return (
                   <button
@@ -136,7 +136,7 @@ export default function QuizAttempt() {
                       }
                     }}
                   >
-                    <span className="option-label">{option.label}</span>
+                    <span className="option-label">{String.fromCharCode(65 + optionIndex)}</span>
                     <span className="option-text">{option.text}</span>
                     {selected && <span className="option-check">✓</span>}
                   </button>
