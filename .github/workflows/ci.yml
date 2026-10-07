@@ -25,7 +25,8 @@ jobs:
         run: find . -path './node_modules' -prune -o -name '*.js' -type f -exec node --check {} \;
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
+        # Temporary workaround for pre-existing incompatible TypeScript lockfile.
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Build frontend
         working-directory: frontend
         run: npm run build
