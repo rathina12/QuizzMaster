@@ -27,7 +27,7 @@ exports.register = async (req, res) => {
 
     // Only allow admin creation with a secret key
     let userRole = 'user';
-    if (role === 'admin' && req.body.adminSecret === process.env.ADMIN_SECRET) {
+    if (role === 'admin' && Boolean(process.env.ADMIN_SECRET) && req.body.adminSecret === process.env.ADMIN_SECRET) {
       userRole = 'admin';
     }
 
