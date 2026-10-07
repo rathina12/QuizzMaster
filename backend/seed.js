@@ -10,6 +10,10 @@ const seedData = async () => {
   await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/quizapp');
   console.log('Connected to MongoDB for seeding...');
 
+  // Seeding deletes users, quizzes and questions. Never run against production.
+  if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') {
+    throw new Error('Refusing destructive seed. Set ALLOW_DESTRUCTIVE_SEED=true in a disposable development database.');
+  }
   // Clear existing data
   await User.deleteMany({});
   await Quiz.deleteMany({});
