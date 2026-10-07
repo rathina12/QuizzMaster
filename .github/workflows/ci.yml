@@ -22,7 +22,7 @@ jobs:
         run: npm ci
       - name: Check backend entrypoint syntax
         working-directory: backend
-        run: node --check server.js
+        run: find . -path './node_modules' -prune -o -name '*.js' -type f -exec node --check {} \;
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
