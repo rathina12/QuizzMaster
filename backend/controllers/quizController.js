@@ -7,6 +7,8 @@ const { validationResult } = require('express-validator');
 exports.getQuizzes = async (req, res) => {
   try {
     const { category, search, page = 1, limit = 9, difficulty } = req.query;
+    const safePage = Math.max(1, Math.min(100000, parseInt(page, 10) || 1));
+    const safeLimit = Math.max(1, Math.min(50, parseInt(limit, 10) || 9));
     const query = { isPublished: true };
 
     if (category && category !== 'All') query.category = category;
@@ -21,8 +23,8 @@ exports.getQuizzes = async (req, res) => {
     const quizzes = await Quiz.find(query)
       .populate('createdBy', 'name')
       .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(Number(limit));
+      .skip((safePage - 1) * safeLimit)
+      .limit(safeLimit);
 
     // Add question count to each quiz
     const quizzesWithCount = await Promise.all(quizzes.map(async (quiz) => {
@@ -33,7 +35,7 @@ exports.getQuizzes = async (req, res) => {
     res.json({
       success: true,
       quizzes: quizzesWithCount,
-      pagination: { total, page: Number(page), pages: Math.ceil(total / limit), limit: Number(limit) }
+      pagination: { total, page: safePage, pages: Math.ceil(total / safeLimit), limit: safeLimit }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -45,7 +47,7 @@ exports.getQuizzes = async (req, res) => {
 exports.getQuiz = async (req, res) => {
   try {
     const quiz = await Quiz.findById(req.params.id).populate('createdBy', 'name');
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
+    if (!quiz || !quiz.isPublished) return res.status(404).json({ success: false, message: 'Quiz not found' });
 
     const questions = await Question.find({ quizId: quiz._id });
     res.json({ success: true, quiz: { ...quiz.toObject(), questionCount: questions.length } });
